@@ -31,12 +31,12 @@ require (
 	github.com/minio/madmin-go/v3 v3.0.110
 	// Keep upstream master: v7.3.0 predates the checksum and S3 Express fixes
 	// already included in this pseudo-version.
-	github.com/minio/minio-go/v7 v7.3.1-0.20260910142817-60bd07042d49
+	github.com/minio/minio-go/v7 v7.3.1-0.20260915093545-32e1f32cb176
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.16.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/pgsty/silo-pkg/v3 v3.14.0
+	github.com/pgsty/silo-pkg/v3 v3.14.1
 	github.com/pkg/xattr v0.4.12
 	github.com/posener/complete v1.2.3
 	github.com/prometheus/client_golang v1.24.1
@@ -90,7 +90,7 @@ require (
 	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.6 // indirect
-	github.com/lestrrat-go/jwx/v3 v3.2.0 // indirect
+	github.com/lestrrat-go/jwx/v3 v3.3.0 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
