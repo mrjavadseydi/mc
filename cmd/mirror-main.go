@@ -397,11 +397,6 @@ func (mj *mirrorJob) doRemove(ctx context.Context, sURLs URLs, event EventInfo) 
 	resultCh := clnt.Remove(ctx, false, isRemoveBucket, false, false, contentCh)
 	for result := range resultCh {
 		if result.Err != nil {
-			switch result.Err.ToGoError().(type) {
-			case PathInsufficientPermission:
-				// Ignore Permission error.
-				continue
-			}
 			return sURLs.WithError(result.Err)
 		}
 		targetPath := filepath.ToSlash(filepath.Join(sURLs.TargetAlias, sURLs.TargetContent.URL.Path))
@@ -565,7 +560,19 @@ func (mj *mirrorJob) doMirror(ctx context.Context, sURLs URLs, event EventInfo) 
 func (mj *mirrorJob) monitorMirrorStatus(cancel context.CancelFunc) (errDuringMirror bool) {
 	// now we want to start the progress bar
 	mj.status.Start()
-	defer mj.status.Finish()
+	defer func() {
+		if status, ok := mj.status.(*QuietStatus); ok && errDuringMirror {
+			// Stat stops the accounter. Call it once: subsequent calls return
+			// zero statistics, and Finish would print a success summary.
+			stat := status.Stat()
+			if mj.opts.isSummary {
+				stat.Status = "failure"
+				printMsg(stat)
+			}
+			return
+		}
+		mj.status.Finish()
+	}()
 
 	var cancelInProgress bool
 
@@ -589,21 +596,15 @@ func (mj *mirrorJob) monitorMirrorStatus(cancel context.CancelFunc) (errDuringMi
 
 		if sURLs.Error != nil {
 			var ignoreErr bool
+			_, permissionDenied := sURLs.Error.ToGoError().(PathInsufficientPermission)
 
 			switch {
 			case sURLs.SourceContent != nil:
 				if isErrIgnored(sURLs.Error) {
 					ignoreErr = true
 				} else {
-					switch sURLs.Error.ToGoError().(type) {
-					case PathInsufficientPermission:
-						// Ignore Permission error.
-						ignoreErr = true
-					}
-					if !ignoreErr {
-						errorIf(sURLs.Error.Trace(sURLs.SourceContent.URL.String()),
-							"Failed to copy `%s`.", sURLs.SourceContent.URL)
-					}
+					errorIf(sURLs.Error.Trace(sURLs.SourceContent.URL.String()),
+						"Failed to copy `%s`.", sURLs.SourceContent.URL)
 				}
 			case sURLs.TargetContent != nil:
 				// When sURLs.SourceContent is nil, we know that we have an error related to removing
@@ -624,8 +625,9 @@ func (mj *mirrorJob) monitorMirrorStatus(cancel context.CancelFunc) (errDuringMi
 			if !ignoreErr {
 				mirrorFailedOps.Inc()
 				errDuringMirror = true
-				// Quit mirroring if --skip-errors is not passed
-				if !mj.opts.skipErrors {
+				// Keep processing permission failures, including unreadable local
+				// files, without restarting an entire watch scan on every failure.
+				if !mj.opts.skipErrors && !permissionDenied {
 					cancel()
 					cancelInProgress = true
 				}

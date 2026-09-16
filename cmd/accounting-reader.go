@@ -92,7 +92,9 @@ type accountStat struct {
 }
 
 func (c accountStat) JSON() string {
-	c.Status = "success"
+	if c.Status == "" {
+		c.Status = "success"
+	}
 	accountMessageBytes, e := json.MarshalIndent(c, "", " ")
 	fatalIf(probe.NewError(e), "Unable to marshal into JSON.")
 
