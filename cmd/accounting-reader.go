@@ -62,7 +62,9 @@ func newAccounter(total int64) *accounter {
 func (a *accounter) write(current int64) (float64, time.Duration) {
 	fromStart := time.Since(a.startTime)
 	currentFromStart := current - a.startValue
-	if currentFromStart > 0 {
+	// A fast operation can finish within the same clock tick. Do not emit an
+	// infinite speed that cannot be represented in a JSON summary.
+	if currentFromStart > 0 && fromStart > 0 {
 		speed := float64(currentFromStart) / (float64(fromStart) / float64(time.Second))
 		return speed, fromStart
 	}

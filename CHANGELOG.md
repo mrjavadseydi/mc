@@ -15,6 +15,8 @@
 - Suppress the final success statistics for failed mirrors. An explicit
   `--summary` still prints statistics; its JSON status is `failure`, and text
   output retains the object error diagnostics before the statistics.
+- Keep JSON statistics valid when a fast transfer completes within one clock
+  tick, instead of failing to encode an infinite transfer speed.
 - Return a nonzero exit status when legal-hold set/clear fails, recursive
   retention set/clear partially fails, or `mv` copies successfully but cannot
   delete a source. Retention failures produce one object diagnostic instead
