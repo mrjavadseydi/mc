@@ -36,6 +36,16 @@ SILO mcli welcomes your contribution. To make the process as seamless as possibl
     - `mc` project is conformant with Golang style
     - if you happen to observe offending code, please feel free to send a pull request
 
+### Contributor recognition
+
+Every human issue or pull-request author is recognized in [CONTRIBUTORS.md](CONTRIBUTORS.md),
+including open issues, draft PRs, and PRs closed without merging. Merged fixes,
+adopted proposals, and reports that lead to fixes receive greater prominence;
+first participation guides the remaining order. Work incorporated through a
+later PR retains credit without changing the original PR's recorded status.
+Security disclosures are credited with the reporter's agreement. DCO sign-off
+applies to code commits, not to opening an issue.
+
 ### Licensing of Contributions
 
 Code contributions to PGSTY SILO mcli (`pgsty/mc`) are accepted under the

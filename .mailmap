@@ -1,6 +1,6 @@
-# Generate CONTRIBUTORS.md: contributors.sh
+# Generate the Git commit author export: contributors.sh
 
-# Tip for finding duplicates (besides scanning the output of CONTRIBUTORS.md for name
+# Tip for finding duplicates (besides scanning that export for name
 # duplicates that aren't also email duplicates): scan the output of:
 #   git log --format='%aE - %aN' | sort -uf
 #
