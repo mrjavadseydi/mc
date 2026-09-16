@@ -18,14 +18,41 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestFindInvalidRegexCLI(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "match.txt")
+	if err := os.WriteFile(file, []byte("payload"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, target, regex string
+		wantExit            int
+		want                string
+	}{
+		{"invalid", dir, "[", 1, "Invalid regular expression"},
+		{"missing target checked first", filepath.Join(dir, "missing"), "[", 1, "Unable to stat"},
+		{"valid", dir, `.*match\.txt$`, 0, "match.txt"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result := runChecksumVerifyCLI(t, "http://localhost", nil, "--json", "find", tc.target, "--regex", tc.regex)
+			if result.exitCode != tc.wantExit || !bytes.Contains(result.stdout, []byte(tc.want)) || bytes.Contains(result.stderr, []byte("panic")) {
+				t.Fatalf("exit=%d stdout=%s stderr=%s", result.exitCode, result.stdout, result.stderr)
+			}
+		})
+	}
+}
 
 // Tests match find function with all supported inputs on
 // file pattern, size and time.

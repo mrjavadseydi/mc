@@ -291,7 +291,8 @@ func mainFind(cliCtx *cli.Context) error {
 	}
 	var regMatch *regexp.Regexp
 	if cliCtx.String("regex") != "" {
-		regMatch = regexp.MustCompile(cliCtx.String("regex"))
+		regMatch, e = regexp.Compile(cliCtx.String("regex"))
+		fatalIf(probe.NewError(e), "Invalid regular expression `%s`.", cliCtx.String("regex"))
 	}
 
 	return doFind(ctx, &findContext{
