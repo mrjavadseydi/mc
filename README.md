@@ -1,7 +1,6 @@
 <p align="center">
   <a href="https://silo.pgsty.com/">
-    <img src=".github/silo.svg" alt="Silo emblem" width="112"><br>
-    <img src=".github/silo-word.svg" alt="SILO" height="40">
+    <img src=".github/silo-logo.svg" alt="Silo" width="160">
   </a>
 </p>
 
