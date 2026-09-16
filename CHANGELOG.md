@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased — planned package `20260916000000.0.0`
+## RELEASE.2026-09-16T00-00-00Z — 2026-09-16
+
+Package version: `20260916000000.0.0`.
+[GitHub release](https://github.com/pgsty/mc/releases/tag/RELEASE.2026-09-16T00-00-00Z) ·
+[Changes since 20260913](https://github.com/pgsty/mc/compare/RELEASE.2026-09-13T00-00-00Z...RELEASE.2026-09-16T00-00-00Z)
 
 - Use silo-pkg v3.14.1 and upstream minio-go
   `v7.3.1-0.20260915093545-32e1f32cb176`. The SDK propagates errors embedded

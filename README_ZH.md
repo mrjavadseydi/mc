@@ -33,9 +33,9 @@
 
 ## 当前版本
 
-[20260913](https://github.com/pgsty/mc/releases/tag/RELEASE.2026-09-13T00-00-00Z)
-（`20260913000000.0.0`）使用 silo-pkg v3.14.0 与上游 minio-go `60bd07042d49`。
-行为变化见 [CHANGELOG.md](CHANGELOG.md) 和[中文发布说明](https://silo.pgsty.com/zh/blog/release/mcli-20260913/)。
+[20260916](https://github.com/pgsty/mc/releases/tag/RELEASE.2026-09-16T00-00-00Z)
+（`20260916000000.0.0`）使用 silo-pkg v3.14.1 与上游 minio-go `32e1f32cb176`。
+行为变化见 [CHANGELOG.md](CHANGELOG.md) 和[中文兼容性说明](https://silo.pgsty.com/zh/compatibility/mcli/#current-release)。
 [组件版本矩阵](https://silo.pgsty.com/zh/compatibility/versions/) 区分 Server/Console 已发布版本与更新后的主分支。
 
 ## 概述

@@ -33,8 +33,8 @@
 
 ## Current release
 
-[20260913](https://github.com/pgsty/mc/releases/tag/RELEASE.2026-09-13T00-00-00Z)
-(`20260913000000.0.0`) uses silo-pkg v3.14.0 and upstream minio-go `60bd07042d49`.
+[20260916](https://github.com/pgsty/mc/releases/tag/RELEASE.2026-09-16T00-00-00Z)
+(`20260916000000.0.0`) uses silo-pkg v3.14.1 and upstream minio-go `32e1f32cb176`.
 See [CHANGELOG.md](CHANGELOG.md) for behavior changes and the
 [component matrix](https://silo.pgsty.com/compatibility/versions/) for the
 published Server/Console versions versus their newer main branches.
