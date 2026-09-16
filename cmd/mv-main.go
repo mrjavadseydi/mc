@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/fatih/color"
 	"github.com/minio/cli"
@@ -153,6 +154,8 @@ type removeManager struct {
 	removeMap      map[string]*removeClientInfo
 	removeMapMutex sync.RWMutex
 	wg             sync.WaitGroup
+	failed         atomic.Bool
+	closed         bool
 }
 
 func (rm *removeManager) readErrors(resultCh <-chan RemoveResult, targetURL string) {
@@ -161,6 +164,7 @@ func (rm *removeManager) readErrors(resultCh <-chan RemoveResult, targetURL stri
 		defer rm.wg.Done()
 		for result := range resultCh {
 			if result.Err != nil {
+				rm.failed.Store(true)
 				errorIf(result.Err.Trace(targetURL), "Failed to remove in `%s`.", targetURL)
 			}
 		}
@@ -171,10 +175,16 @@ func (rm *removeManager) readErrors(resultCh <-chan RemoveResult, targetURL stri
 // If targetAlias is empty, it means we will target local FS contents
 func (rm *removeManager) add(ctx context.Context, targetAlias, targetURL string) {
 	rm.removeMapMutex.Lock()
+	defer rm.removeMapMutex.Unlock()
+	if rm.closed {
+		rm.failed.Store(true)
+		return
+	}
 	clientInfo := rm.removeMap[targetAlias]
 	if clientInfo == nil {
 		client, pErr := newClientFromAlias(targetAlias, targetURL)
 		if pErr != nil {
+			rm.failed.Store(true)
 			errorIf(pErr.Trace(targetURL), "Invalid argument `%s`.", targetURL)
 			return
 		}
@@ -191,18 +201,31 @@ func (rm *removeManager) add(ctx context.Context, targetAlias, targetURL string)
 
 		rm.removeMap[targetAlias] = clientInfo
 	}
-	rm.removeMapMutex.Unlock()
-
-	clientInfo.contentCh <- &ClientContent{URL: *newClientURL(targetURL)}
+	// Hold the lock through admission so close cannot race with a send.
+	// Cancellation must release the lock even when the delete queue is full.
+	select {
+	case clientInfo.contentCh <- &ClientContent{URL: *newClientURL(targetURL)}:
+	case <-ctx.Done():
+		rm.failed.Store(true)
+	}
 }
 
-func (rm *removeManager) close() {
-	for _, clientInfo := range rm.removeMap {
-		close(clientInfo.contentCh)
+func (rm *removeManager) close() error {
+	rm.removeMapMutex.Lock()
+	if !rm.closed {
+		rm.closed = true
+		for _, clientInfo := range rm.removeMap {
+			close(clientInfo.contentCh)
+		}
 	}
+	rm.removeMapMutex.Unlock()
 
 	// Wait until all on-going client.Remove() operations to finish
 	rm.wg.Wait()
+	if rm.failed.Load() {
+		return exitStatus(globalErrorExitStatus)
+	}
+	return nil
 }
 
 var rmManager = &removeManager{
@@ -232,10 +255,15 @@ func mainMove(cliCtx *cli.Context) error {
 	encKeyDB, err := validateAndCreateEncryptionKeys(cliCtx)
 	fatalIf(err, "Unable to parse encryption keys.")
 
+	// A manager is closed after each invocation; do not reuse its channels or
+	// failure state when the command is invoked again in the same process.
+	rmManager = &removeManager{removeMap: make(map[string]*removeClientInfo)}
 	e := doCopySession(ctx, cancelMove, cliCtx, encKeyDB, true)
 
 	console.Colorize("Copy", "Waiting for move operations to complete")
-	rmManager.close()
+	if removeErr := rmManager.close(); e == nil {
+		e = removeErr
+	}
 
 	return e
 }
