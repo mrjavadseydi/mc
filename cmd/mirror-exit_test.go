@@ -37,12 +37,15 @@ func TestMirrorFailureStatus(t *testing.T) {
 		name       string
 		err        error
 		remove     bool
+		listing    bool
 		skipErrors bool
 		wantCancel bool
 		wantError  bool
 	}{
 		{name: "copy denied", err: PathInsufficientPermission{}, wantError: true},
 		{name: "remove denied", err: PathInsufficientPermission{}, remove: true, wantError: true},
+		{name: "listing denied cancels", err: PathInsufficientPermission{}, listing: true, wantCancel: true, wantError: true},
+		{name: "skip listing denial", err: PathInsufficientPermission{}, listing: true, skipErrors: true, wantError: true},
 		{name: "other failure cancels", err: errors.New("transfer failed"), wantCancel: true, wantError: true},
 		{name: "skip other failure", err: errors.New("transfer failed"), skipErrors: true, wantError: true},
 		{name: "missing source remains ignored", err: PathNotFound{}},
@@ -58,6 +61,9 @@ func TestMirrorFailureStatus(t *testing.T) {
 				result := URLs{SourceContent: content, Error: probe.NewError(tc.err)}
 				if tc.remove {
 					result.SourceContent, result.TargetContent = nil, content
+				}
+				if tc.listing {
+					result.SourceContent = nil
 				}
 				ctx, cancel := context.WithCancel(context.Background())
 				defer cancel()

@@ -10,8 +10,9 @@
   rejected destination writes, and failed local destination removals. Continue
   processing later objects, as before, but return a nonzero exit status when a
   finite mirror finishes with failures. `--skip-errors` is not required to keep
-  processing permission failures. Watch permission failures do not cancel and
-  restart the entire scan.
+  processing permission failures. Per-object permission failures in watch
+  mode do not cancel and restart the entire scan. Listing and watcher
+  failures retain their existing cancellation and retry behavior.
 - Suppress the final success statistics for failed mirrors. An explicit
   `--summary` still prints statistics; its JSON status is `failure`, and text
   output retains the object error diagnostics before the statistics.

@@ -597,6 +597,9 @@ func (mj *mirrorJob) monitorMirrorStatus(cancel context.CancelFunc) (errDuringMi
 		if sURLs.Error != nil {
 			var ignoreErr bool
 			_, permissionDenied := sURLs.Error.ToGoError().(PathInsufficientPermission)
+			// Listing and watcher failures must retain cancellation/retry;
+			// only per-object permission errors can continue the current scan.
+			permissionDenied = permissionDenied && (sURLs.SourceContent != nil || sURLs.TargetContent != nil)
 
 			switch {
 			case sURLs.SourceContent != nil:
