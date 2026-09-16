@@ -48,8 +48,10 @@ func captureCommandJSON(t *testing.T, fn func()) string {
 
 func TestObjectLockFailureExitStatus(t *testing.T) {
 	for _, operation := range [][]string{
-		{"legalhold", "set"}, {"legalhold", "clear"},
-		{"retention", "set", "governance", "1d"}, {"retention", "clear"},
+		{"legalhold", "set"},
+		{"legalhold", "clear"},
+		{"retention", "set", "governance", "1d"},
+		{"retention", "clear"},
 	} {
 		for _, tc := range []struct {
 			name      string
