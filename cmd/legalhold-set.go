@@ -100,18 +100,17 @@ func setLegalHold(ctx context.Context, urlStr, versionID string, timeRef time.Ti
 		if err != nil {
 			errorIf(err.Trace(urlStr), "Failed to set legal hold on `%s` successfully", urlStr)
 			return exitStatus(globalErrorExitStatus)
-		} else {
-			contentURL := filepath.ToSlash(clnt.GetURL().Path)
-			key := strings.TrimPrefix(contentURL, prefixPath)
-
-			printMsg(legalHoldCmdMessage{
-				LegalHold: lhold,
-				Status:    "success",
-				URLPath:   clnt.GetURL().String(),
-				Key:       key,
-				VersionID: versionID,
-			})
 		}
+		contentURL := filepath.ToSlash(clnt.GetURL().Path)
+		key := strings.TrimPrefix(contentURL, prefixPath)
+
+		printMsg(legalHoldCmdMessage{
+			LegalHold: lhold,
+			Status:    "success",
+			URLPath:   clnt.GetURL().String(),
+			Key:       key,
+			VersionID: versionID,
+		})
 		return nil
 	}
 
