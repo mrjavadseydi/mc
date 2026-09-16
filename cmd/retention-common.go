@@ -125,11 +125,6 @@ func getRetainUntilDate(validity uint64, unit minio.ValidityUnit) (string, *prob
 }
 
 func setRetentionSingle(ctx context.Context, op lockOpType, alias, url, versionID string, mode minio.RetentionMode, retainUntil time.Time, bypassGovernance bool) *probe.Error {
-	newClnt, err := newClientFromAlias(alias, url)
-	if err != nil {
-		return err
-	}
-
 	msg := retentionCmdMessage{
 		Op:        op,
 		Mode:      mode,
@@ -137,7 +132,10 @@ func setRetentionSingle(ctx context.Context, op lockOpType, alias, url, versionI
 		VersionID: versionID,
 	}
 
-	err = newClnt.PutObjectRetention(ctx, versionID, mode, retainUntil, bypassGovernance)
+	newClnt, err := newClientFromAlias(alias, url)
+	if err == nil {
+		err = newClnt.PutObjectRetention(ctx, versionID, mode, retainUntil, bypassGovernance)
+	}
 	if err != nil {
 		msg.Err = err.ToGoError()
 		msg.Status = "failure"
@@ -150,6 +148,9 @@ func setRetentionSingle(ctx context.Context, op lockOpType, alias, url, versionI
 }
 
 func parseRetentionValidity(validityStr string) (uint64, minio.ValidityUnit, *probe.Error) {
+	if validityStr == "" {
+		return 0, "", errInvalidArgument().Trace()
+	}
 	unitStr := string(validityStr[len(validityStr)-1])
 	validityStr = validityStr[:len(validityStr)-1]
 	validity, e := strconv.ParseUint(validityStr, 10, 64)
@@ -209,7 +210,9 @@ func applyRetention(ctx context.Context, op lockOpType, target, versionID string
 	alias, urlStr, _ := mustExpandAlias(target)
 	if versionID != "" || !isRecursive && !withVersions {
 		err := setRetentionSingle(ctx, op, alias, urlStr, versionID, mode, until, bypassGovernance)
-		fatalIf(err.Trace(), "Unable to set retention on `%s`", target)
+		if err != nil {
+			return exitStatus(globalErrorExitStatus)
+		}
 		return nil
 	}
 
@@ -241,14 +244,14 @@ func applyRetention(ctx context.Context, op lockOpType, target, versionID string
 
 		err := setRetentionSingle(ctx, op, alias, content.URL.String(), content.VersionID, mode, until, bypassGovernance)
 		if err != nil {
-			errorIf(err.Trace(clnt.GetURL().String()), "Invalid URL")
+			cErr = exitStatus(globalErrorExitStatus)
 			continue
 		}
 
 		atLeastOneRetentionApplied = true
 	}
 
-	if !atLeastOneRetentionApplied {
+	if !atLeastOneRetentionApplied && cErr == nil {
 		errorIf(errDummy().Trace(clnt.GetURL().String()), "Unable to find any object/version to %s its retention.", op)
 		cErr = exitStatus(globalErrorExitStatus) // Set the exit status.
 	}
