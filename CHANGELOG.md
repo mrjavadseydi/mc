@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased — planned package `20260916000000.0.0`
+
+- Use silo-pkg v3.14.1 and upstream minio-go
+  `v7.3.1-0.20260915093545-32e1f32cb176`. The SDK propagates errors embedded
+  in CopyObject HTTP 200 responses so a failed copy cannot authorize `mv`
+  to delete the source.
+- Report permission failures in `mirror`, including unreadable source files,
+  rejected destination writes, and failed local destination removals. Continue
+  processing later objects, as before, but return a nonzero exit status when a
+  finite mirror finishes with failures. `--skip-errors` is not required to keep
+  processing permission failures. Watch permission failures do not cancel and
+  restart the entire scan.
+- Suppress the final success statistics for failed mirrors. An explicit
+  `--summary` still prints statistics; its JSON status is `failure`, and text
+  output retains the object error diagnostics before the statistics.
+- Return a nonzero exit status when legal-hold set/clear fails, recursive
+  retention set/clear partially fails, or `mv` copies successfully but cannot
+  delete a source. Retention failures produce one object diagnostic instead
+  of duplicate or misleading URL errors. Successful objects are not rolled back.
+- Reject empty retention durations and invalid `find --regex` expressions
+  through normal CLI errors instead of panicking.
+
+**Script compatibility:** mirror permission failures, Object Lock failures,
+and failed move cleanup that previously returned 0 now return 1. Inspect the
+final exit status and error records; existing per-object copy start messages
+and progress byte counters are not proof that the operation completed.
+
 ## RELEASE.2026-09-13T00-00-00Z — 2026-09-13
 
 Package version: `20260913000000.0.0`. Source:
